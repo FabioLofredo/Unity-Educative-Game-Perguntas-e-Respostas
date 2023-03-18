@@ -2,8 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
+using System.Linq;
+//using IMG2Sprite;
 
-public class jogo : MonoBehaviour
+public class game_dinamic_images : MonoBehaviour
 {
     public TMPro.TextMeshProUGUI texto;
     public GameObject efeito_sonoro;
@@ -11,8 +14,6 @@ public class jogo : MonoBehaviour
     public GameObject efeito_sonoro_sair;
     public Camera cam;
     public Image figura_Perguntas_e_Respostas;
-    public Sprite[] array_das_perguntas = new Sprite[0];
-    public Sprite[] array_das_respostas = new Sprite[0];
     private List<int> lista_inicial_dos_indices_das_perguntas = new List<int>();
     private List<int> lista_final_dos_indices_das_perguntas = new List<int>();
     private int indice_dos_indices_das_perguntas = 0;
@@ -30,17 +31,50 @@ public class jogo : MonoBehaviour
     private Color temp_camera;
     private Color temp_texto_color;
     private bool temp_enabled_img;
+    private List<Sprite> sprites_perguntas = new List<Sprite>();
+    private List<Sprite> sprites_respostas = new List<Sprite>();
+
 
     void Start()
     {
+        iniciar_sprites();
         initial_camera_color=cam.backgroundColor;
         Instantiate(efeito_sonoro_inicio);
         figura_Perguntas_e_Respostas.enabled = false;
         randomizar_e_preparar_perguntas();
     }
 
+
+    void iniciar_sprites(){
+        
+        if (!Directory.Exists(Application.dataPath + "/perguntas/")){
+            Directory.CreateDirectory(Application.dataPath + "/perguntas/");
+        }
+        if (!Directory.Exists(Application.dataPath + "/respostas/")){
+            Directory.CreateDirectory(Application.dataPath + "/respostas/");
+        }
+
+        string info_p = Application.dataPath + "/perguntas/";
+        string[] fileInfo_p = Directory.GetFiles(info_p,"*.*").Where(s => s.ToLower().EndsWith(".png") ||  s.ToLower().EndsWith(".jpeg")).ToArray();
+        string info_r = Application.dataPath + "/respostas/";
+        string[] fileInfo_r = Directory.GetFiles(info_r,"*.*").Where(s => s.ToLower().EndsWith(".png") || s.ToLower().EndsWith(".jpeg")).ToArray();
+
+        foreach (string file in fileInfo_p){
+            print(file);
+            Sprite MySprite = IMG2Sprite.instance.LoadNewSprite(file);
+            sprites_perguntas.Add(MySprite);
+        }
+        foreach (string file in fileInfo_r){
+            print(file);
+            Sprite MySprite = IMG2Sprite.instance.LoadNewSprite(file);
+            sprites_respostas.Add(MySprite);
+        }
+
+    }
+
+
     void randomizar_e_preparar_perguntas(){
-        for (int i= 0; i < array_das_perguntas.Length;i++){
+        for (int i= 0; i < sprites_perguntas.Count;i++){
            lista_inicial_dos_indices_das_perguntas.Add(i);
         }
         int temp_rnd;
@@ -58,12 +92,12 @@ public class jogo : MonoBehaviour
 
     void mostrar_imagem_pergunta(){
         figura_Perguntas_e_Respostas.enabled = true;
-        figura_Perguntas_e_Respostas.sprite = array_das_perguntas[lista_final_dos_indices_das_perguntas[indice_dos_indices_das_perguntas]];
+        figura_Perguntas_e_Respostas.sprite = sprites_perguntas[lista_final_dos_indices_das_perguntas[indice_dos_indices_das_perguntas]];
     }
 
     void mostrar_imagem_resposta(){
         figura_Perguntas_e_Respostas.enabled = true;
-        figura_Perguntas_e_Respostas.sprite = array_das_respostas[lista_final_dos_indices_das_perguntas[indice_dos_indices_das_perguntas]];
+        figura_Perguntas_e_Respostas.sprite = sprites_respostas[lista_final_dos_indices_das_perguntas[indice_dos_indices_das_perguntas]];
     }
 
     void resetar()
@@ -84,6 +118,7 @@ public class jogo : MonoBehaviour
             texto.color=temp_texto_color;
             figura_Perguntas_e_Respostas.enabled=temp_enabled_img;
             tela_de_saida = false;
+            texto.text = "";
         }
         if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.KeypadEnter)){
             Application.Quit();
@@ -94,12 +129,13 @@ public class jogo : MonoBehaviour
         tempo_contagem += Time.deltaTime;
         texto.color = new Color32(255, 255, 0, 255);
         cam.backgroundColor = initial_camera_color;
-        texto.text = "Perguntas e Respostas";
+        texto.text = "Perguntas e Respostas.";
         if (tempo_contagem>5) {
             resetar();
             modo_do_jogo = "1.Pergunta inicial"; 
             texto.enableVertexGradient = false;
             tela_inicial = false;
+            texto.text = "";
         }        
     }
 
@@ -120,10 +156,11 @@ public class jogo : MonoBehaviour
                 tempo_contagem += Time.deltaTime;
                 if (modo_do_jogo =="1.Pergunta inicial"){
                     if(tela_antes_da_pergunta){
-                        texto.text = "Para iniciar aperte ESPAÇO!\nCtrl - Time A (Esquerda)\nEnter - Time B (Direita)\nEspaço - Inicia/Reseta\nEsc - Sair do jogo";
+                        texto.text = "Para iniciar aperte ESPAÇO!\nCtrl - Time A (Esquerda)\nEnter - Time B (Direita)\nEspaço - Inicia/Continua\nEsc - Sair do jogo";
                         if(Input.GetKey(KeyCode.Space)&& tempo_contagem>1){
                             tela_antes_da_pergunta = false;
                             tempo_contagem = 0;
+                            texto.text = "";
                             mostrar_imagem_pergunta();
                         }
                     }
@@ -174,6 +211,7 @@ public class jogo : MonoBehaviour
                     //Condição de saída
                     if (tempo_contagem>tempo_para_responder) {
                         modo_do_jogo ="3.Responda Agora";
+                        texto.text ="";
                     }
                 }
                 else if (modo_do_jogo =="3.Responda Agora" ){
@@ -184,6 +222,7 @@ public class jogo : MonoBehaviour
                     //cam.backgroundColor = new Color(0.6f, 0f, 0f, 1f);
                     if (Input.GetKeyDown(KeyCode.Space)){
                         modo_do_jogo ="4.Pergunta e resposta finais";
+                        texto.text ="";
                         resetar();
                     }
                 }
@@ -201,10 +240,12 @@ public class jogo : MonoBehaviour
                         }
                         else if (Input.GetKeyDown(KeyCode.F1)){
                             modo_da_tela_de_resposta = "Pergunta";
+                            texto.text = "";
                             mostrar_imagem_pergunta();
                         }
                         else if (Input.GetKeyDown(KeyCode.F2)){
                             modo_da_tela_de_resposta = "Resposta";
+                            texto.text = "";
                             mostrar_imagem_resposta();
                         }
                     }
@@ -219,6 +260,7 @@ public class jogo : MonoBehaviour
                             figura_Perguntas_e_Respostas.enabled = false;
                             resetar();
                         }
+
                     }
                     else if(modo_da_tela_de_resposta =="Resposta"){
                         if(Input.GetKeyDown(KeyCode.F1)){
