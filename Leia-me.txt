@@ -1,0 +1,21 @@
+Coloque as perguntas na pasta "perguntas" e as respostas na pasta "respostas", estas pastas estão dentro da pasta "Jogo das Perguntas_Data".
+
+Será aceito imagens no formato *.png e *.jpeg.
+
+A relação das perguntas e suas respostas se dará em ordem alfabética do nome do arquivo.
+
+Para toda pergunta é necessário ter uma resposta, e nenhuma pode estar faltando.
+
+Exemplo 1:
+Perguntas: 1.png ; 2.png; 3.png
+Respostas: 1.png ; 2.png; 3.png
+
+Exemplo 2:
+Perguntas: 1p.png ; 2p.png; 3p.png
+Respostas: 1r.png ; 2r.png; 3r.png
+
+Exemplo 3:
+Perguntas: Soma_p.png ; Subtração_p.png; Multiplicação_p.png
+Respostas: Soma_r.png ; Subtração_r.png; Multiplicação_r.png
+
+Observe que todas estão em ordem alfabéticas, relacionando as perguntas as suas respectivas respostas.
