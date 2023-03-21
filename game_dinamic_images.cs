@@ -44,7 +44,6 @@ public class game_dinamic_images : MonoBehaviour
         randomizar_e_preparar_perguntas();
     }
 
-
     void iniciar_sprites(){
         
         if (!Directory.Exists(Application.dataPath + "/perguntas/")){
@@ -69,7 +68,6 @@ public class game_dinamic_images : MonoBehaviour
             Sprite MySprite = IMG2Sprite.instance.LoadNewSprite(file);
             sprites_respostas.Add(MySprite);
         }
-
     }
 
 
@@ -140,7 +138,9 @@ public class game_dinamic_images : MonoBehaviour
     }
 
     void Update()
-    {
+    {   
+
+
         if(tela_inicial==true)func_tela_inicial();
         else{
             if (Input.GetKeyDown(KeyCode.Escape)&& tela_de_saida==false){
@@ -276,5 +276,10 @@ public class game_dinamic_images : MonoBehaviour
                 }              
             }
         }
+
+    if(sprites_perguntas.Count != sprites_respostas.Count){
+        texto.text = "ERRO: A quantidade de imagens das Perguntas e Respostas não são iguais";
+        if(tela_inicial==false) Application.Quit();
+    }
     }
 }
