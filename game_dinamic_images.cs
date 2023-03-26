@@ -33,7 +33,7 @@ public class game_dinamic_images : MonoBehaviour
     private bool temp_enabled_img;
     private List<Sprite> sprites_perguntas = new List<Sprite>();
     private List<Sprite> sprites_respostas = new List<Sprite>();
-
+    private bool safe_button_not_continue = true;
 
     void Start()
     {
@@ -43,7 +43,6 @@ public class game_dinamic_images : MonoBehaviour
         figura_Perguntas_e_Respostas.enabled = false;
         randomizar_e_preparar_perguntas();
     }
-
 
     void iniciar_sprites(){
         
@@ -69,7 +68,6 @@ public class game_dinamic_images : MonoBehaviour
             Sprite MySprite = IMG2Sprite.instance.LoadNewSprite(file);
             sprites_respostas.Add(MySprite);
         }
-
     }
 
 
@@ -140,7 +138,9 @@ public class game_dinamic_images : MonoBehaviour
     }
 
     void Update()
-    {
+    {   
+
+
         if(tela_inicial==true)func_tela_inicial();
         else{
             if (Input.GetKeyDown(KeyCode.Escape)&& tela_de_saida==false){
@@ -157,7 +157,7 @@ public class game_dinamic_images : MonoBehaviour
                 if (modo_do_jogo =="1.Pergunta inicial"){
                     if(tela_antes_da_pergunta){
                         texto.text = "Para iniciar aperte ESPAÇO!\nCtrl - Time A (Esquerda)\nEnter - Time B (Direita)\nEspaço - Inicia/Continua\nEsc - Sair do jogo";
-                        if(Input.GetKey(KeyCode.Space)&& tempo_contagem>1){
+                        if((Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse0))&& tempo_contagem>1){
                             tela_antes_da_pergunta = false;
                             tempo_contagem = 0;
                             texto.text = "";
@@ -167,7 +167,7 @@ public class game_dinamic_images : MonoBehaviour
                     else{
 
                         //texto.text = "Pergunta X\n" + ((int)tempo_contagem).ToString()+"s";
-                        if (Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse1))tempo_contagem = 0;
+                        if (Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse0))tempo_contagem = 0;
 
                         // time A
                         if (Input.GetKeyDown(KeyCode.LeftControl)){
@@ -220,7 +220,7 @@ public class game_dinamic_images : MonoBehaviour
                     //cam.backgroundColor = new Color(1f, 0.9f, 0.9f, 1f);
                     cam.backgroundColor = Color.Lerp( new Color(1f, 0f, 0f, 1f), new Color(0f, 0f, 0f, 1f),(tempo_contagem-tempo_para_responder)/ tempo_tempo_na_tela_de_responda_agora);
                     //cam.backgroundColor = new Color(0.6f, 0f, 0f, 1f);
-                    if (Input.GetKeyDown(KeyCode.Space)){
+                    if  (Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse0)){
                         modo_do_jogo ="4.Pergunta e resposta finais";
                         texto.text ="";
                         resetar();
@@ -229,33 +229,41 @@ public class game_dinamic_images : MonoBehaviour
                 else if (modo_do_jogo =="4.Pergunta e resposta finais"){
                     
                     if(modo_da_tela_de_resposta ==""){
-                        texto.text = "F1 - Pergunta\nF2 - Resposta\nEspaço - Continuar";
-                        if (Input.GetKeyDown(KeyCode.Space)&& tempo_contagem>1){
+                        if (safe_button_not_continue == true){
+                            texto.text = "F1 - Pergunta\nF2 - Resposta";
+                        }
+                        else{
+                            texto.text = "F1 - Pergunta\nF2 - Resposta\nEspaço - Continuar";
+                        }
+                        if  (((Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse0))&& tempo_contagem>1) && safe_button_not_continue == false){
                             modo_do_jogo ="1.Pergunta inicial";
                             modo_da_tela_de_resposta = "";
                             if(indice_dos_indices_das_perguntas<lista_final_dos_indices_das_perguntas.Count-1)indice_dos_indices_das_perguntas +=1;
                             else{indice_dos_indices_das_perguntas =0;}
                             figura_Perguntas_e_Respostas.enabled = false;
+                            safe_button_not_continue = true;
                             resetar();
                         }
                         else if (Input.GetKeyDown(KeyCode.F1)){
                             modo_da_tela_de_resposta = "Pergunta";
                             texto.text = "";
                             mostrar_imagem_pergunta();
+                            safe_button_not_continue = false;
                         }
-                        else if (Input.GetKeyDown(KeyCode.F2)){
+                        else if (Input.GetKeyDown(KeyCode.F2)||Input.GetKeyDown(KeyCode.Mouse1)){
                             modo_da_tela_de_resposta = "Resposta";
                             texto.text = "";
                             mostrar_imagem_resposta();
+                            safe_button_not_continue = false;
                         }
                     }
 
                     else if(modo_da_tela_de_resposta =="Pergunta"){
-                        if(Input.GetKeyDown(KeyCode.F2)){
+                        if(Input.GetKeyDown(KeyCode.F2)||Input.GetKeyDown(KeyCode.Mouse1)){
                             modo_da_tela_de_resposta = "Resposta";
                             mostrar_imagem_resposta();
                         }
-                        else if (Input.GetKeyDown(KeyCode.Space)){
+                        else if  (Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse0)){
                             modo_da_tela_de_resposta = "";
                             figura_Perguntas_e_Respostas.enabled = false;
                             resetar();
@@ -267,7 +275,7 @@ public class game_dinamic_images : MonoBehaviour
                             modo_da_tela_de_resposta = "Pergunta";
                             mostrar_imagem_pergunta();
                         }
-                        else if (Input.GetKeyDown(KeyCode.Space)){
+                        else if  (Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse0)){
                             modo_da_tela_de_resposta = "";
                             figura_Perguntas_e_Respostas.enabled = false;
                             resetar();
@@ -276,5 +284,10 @@ public class game_dinamic_images : MonoBehaviour
                 }              
             }
         }
+
+    if(sprites_perguntas.Count != sprites_respostas.Count){
+        texto.text = "ERRO: A quantidade de imagens das Perguntas e Respostas não são iguais";
+        if(tela_inicial==false) Application.Quit();
+    }
     }
 }
