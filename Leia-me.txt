@@ -1,3 +1,5 @@
+Evite rodar no Pen Drive. Prefira copiar o programa no HD e assim executar o programa, isso evitará erros.
+
 Coloque as perguntas na pasta "perguntas" e as respostas na pasta "respostas", estas pastas estão dentro da pasta "Jogo das Perguntas_Data".
 
 Será aceito imagens no formato *.png e *.jpeg.
