@@ -34,7 +34,11 @@ public class game_dinamic_images : MonoBehaviour
     private List<Sprite> sprites_perguntas = new List<Sprite>();
     private List<Sprite> sprites_respostas = new List<Sprite>();
     private bool safe_button_not_continue = true;
-
+    private bool multiplos_times;
+    private string time_ganhador_multiplos_times = "";
+    private bool erro_ao_carregar;
+    private string carregou_interrogacao ="";
+    //private bool condicao_para_carregar;
     void Start()
     {
         iniciar_sprites();
@@ -42,8 +46,49 @@ public class game_dinamic_images : MonoBehaviour
         Instantiate(efeito_sonoro_inicio);
         figura_Perguntas_e_Respostas.enabled = false;
         randomizar_e_preparar_perguntas();
+        multiplos_times = false;
+        erro_ao_carregar = false;
+        carregou_interrogacao = "C - Carregar última rodada";
+
     }
 
+    void save(){
+        print("jogo salvo");
+        PlayerPrefs.DeleteAll();
+        PlayerPrefs.SetInt("indice_atual", indice_dos_indices_das_perguntas);
+        for(int i=0;i<lista_final_dos_indices_das_perguntas.Count;i++ ){
+            PlayerPrefs.SetInt("array_perguntas"+i,lista_final_dos_indices_das_perguntas[i]);
+        }
+
+    }
+
+    bool load(){
+
+        //condicao_para_carregar = false;
+
+        bool chave0= true;// = PlayerPrefs.HasKey("indice_atual");
+        int j =0;
+        while(chave0){
+            chave0 = PlayerPrefs.HasKey("array_perguntas"+j);
+            j++;
+        }
+
+        if(j-1==lista_final_dos_indices_das_perguntas.Count){
+            print("jogo carregado");
+            print("Load indice_atual: "+PlayerPrefs.GetInt("indice_atual"));
+            indice_dos_indices_das_perguntas = PlayerPrefs.GetInt("indice_atual");
+            bool chave = PlayerPrefs.HasKey("array_perguntas0");
+            int i =0;
+            while(chave){
+                print("Load array_perguntas: "+PlayerPrefs.GetInt("array_perguntas"+i,lista_final_dos_indices_das_perguntas[i]));
+                lista_final_dos_indices_das_perguntas[i] = PlayerPrefs.GetInt("array_perguntas"+i,lista_final_dos_indices_das_perguntas[i]);
+                i++;
+                chave = PlayerPrefs.HasKey("array_perguntas"+i);
+            }
+            return true;
+        }
+        else{return false;}
+    }
     void iniciar_sprites(){
         
         if (!Directory.Exists(Application.dataPath + "/perguntas/")){
@@ -139,8 +184,8 @@ public class game_dinamic_images : MonoBehaviour
 
     void Update()
     {   
-
-
+        
+        
         if(tela_inicial==true)func_tela_inicial();
         else{
             if (Input.GetKeyDown(KeyCode.Escape)&& tela_de_saida==false){
@@ -156,63 +201,117 @@ public class game_dinamic_images : MonoBehaviour
                 tempo_contagem += Time.deltaTime;
                 if (modo_do_jogo =="1.Pergunta inicial"){
                     if(tela_antes_da_pergunta){
-                        texto.text = "Para iniciar aperte ESPAÇO!\nCtrl - Time A (Esquerda)\nEnter - Time B (Direita)\nEspaço - Inicia/Continua\nEsc - Sair do jogo";
+                        if (multiplos_times == false){
+                            texto.text = "Para iniciar aperte ESPAÇO!\nCtrl - Time A (Esquerda)\nEnter - Time B (Direita)\nTab - Múltiplos times(desativado)\nEspaço - Inicia/Continua\nEsc - Sair do jogo\n"+carregou_interrogacao;
+                            if(Input.GetKeyDown(KeyCode.Tab))multiplos_times=true; 
+                        }
+                        else{
+
+                            texto.text = "Para iniciar aperte ESPAÇO!\nQualquer tecla para responder\nTab - Múltiplos times(ativado)\nEspaço - Inicia/Continua\nEsc - Sair do jogo\n" + carregou_interrogacao;
+                            if(Input.GetKeyDown(KeyCode.Tab))multiplos_times=false;
+                        }
+                        if(Input.GetKeyDown(KeyCode.C)){
+                            if(load()){
+                                carregou_interrogacao = "Carregado com sucesso!";
+                            }
+                            else{
+                                carregou_interrogacao = "Erro ao carregar!";
+                            }
+                        }
                         if((Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse0))&& tempo_contagem>1){
                             tela_antes_da_pergunta = false;
                             tempo_contagem = 0;
                             texto.text = "";
                             mostrar_imagem_pergunta();
+                            save();   
+                            carregou_interrogacao = "C - Carregar última rodada";
                         }
                     }
                     else{
+                        if (multiplos_times == false){
+                            //texto.text = "Pergunta X\n" + ((int)tempo_contagem).ToString()+"s";
+                            if (Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse0))tempo_contagem = 0;
 
-                        //texto.text = "Pergunta X\n" + ((int)tempo_contagem).ToString()+"s";
-                        if (Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.Mouse0))tempo_contagem = 0;
+                            // time A
+                            if (Input.GetKeyDown(KeyCode.LeftControl)){
+                                tempo_contagem = 0;
+                                modo_do_jogo ="2.Time que apertou";
+                                time_A_ganhador = true;
+                                tela_antes_da_pergunta = true;
+                                figura_Perguntas_e_Respostas.enabled = false;
+                                Instantiate(efeito_sonoro);
+                            }
+                            // Time B
+                            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)){
+                                tempo_contagem = 0;
+                                modo_do_jogo ="2.Time que apertou";
+                                time_A_ganhador = false;
+                                tela_antes_da_pergunta = true;
+                                figura_Perguntas_e_Respostas.enabled = false;
+                                Instantiate(efeito_sonoro);
+                            }
+                            // Times A e B apertaram juntos, escolher aleatóriamente
+                            if(Input.GetKeyDown(KeyCode.LeftControl) && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))){
+                                int rand = Random.Range(0, 2);
+                                if (rand ==0) time_A_ganhador = true;
+                                else time_A_ganhador = false;
+                            }
+                        }
+                        else if(multiplos_times == true){
+                            List<string> key_press_list = new List<string>();
+                            foreach(KeyCode kcode in System.Enum.GetValues(typeof(KeyCode))){
+                                if (Input.GetKey(kcode)){
+                                    if (KeyCode.Space!=kcode)key_press_list.Add(kcode.ToString());
+                                }
+                                //Debug.Log("KeyCode down: " + kcode);
+                            }
 
-                        // time A
-                        if (Input.GetKeyDown(KeyCode.LeftControl)){
-                            tempo_contagem = 0;
-                            modo_do_jogo ="2.Time que apertou";
-                            time_A_ganhador = true;
-                            tela_antes_da_pergunta = true;
-                            figura_Perguntas_e_Respostas.enabled = false;
-                            Instantiate(efeito_sonoro);
-                        }
-                        // Time B
-                        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)){
-                            tempo_contagem = 0;
-                            modo_do_jogo ="2.Time que apertou";
-                            time_A_ganhador = false;
-                            tela_antes_da_pergunta = true;
-                            figura_Perguntas_e_Respostas.enabled = false;
-                            Instantiate(efeito_sonoro);
-                        }
-                        // Times A e B apertaram juntos, escolher aleatóriamente
-                        if(Input.GetKeyDown(KeyCode.LeftControl) && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))){
-                            int rand = Random.Range(0, 2);
-                            if (rand ==0) time_A_ganhador = true;
-                            else time_A_ganhador = false;
+                            if(key_press_list.Count!=0){
+                                string rand = key_press_list[Random.Range(0, key_press_list.Count)];
+                                time_ganhador_multiplos_times = rand;
+                                Debug.Log("ganhador: " + time_ganhador_multiplos_times);
+                                tempo_contagem = 0;
+                                modo_do_jogo ="2.Time que apertou";
+                                tela_antes_da_pergunta = true;
+                                figura_Perguntas_e_Respostas.enabled = false;
+                                Instantiate(efeito_sonoro);
+
+                            }
+                            
+                            //foreach(string s in key_press_list){Debug.Log(s);}                          
                         }
                     }
                 }
                 
                 else if (modo_do_jogo =="2.Time que apertou" ){
-                    
-                    // time A
-                    if (time_A_ganhador){
+                    if (multiplos_times == false){
+                        // time A
+                        if (time_A_ganhador){
+                            cam.backgroundColor = new Color(0f, 0.6f, 0.6f, 1f);
+                            texto.text = "Time A apertou Ctrl.\n"+ (tempo_para_responder-(int)tempo_contagem).ToString()+"s";
+                        }
+                        // time B
+                        else{
+                            cam.backgroundColor = new Color(0f, 0f, 0.6f, 1f);
+                            texto.text = "Time B apertou Enter.\n"+ (tempo_para_responder-(int)tempo_contagem).ToString()+"s";
+                        }
+                        //Condição de saída
+                        if (tempo_contagem>tempo_para_responder) {
+                            modo_do_jogo ="3.Responda Agora";
+                            texto.text ="";
+                        }
+                    }
+                    else if(multiplos_times == true){
                         cam.backgroundColor = new Color(0f, 0.6f, 0.6f, 1f);
-                        texto.text = "Time A apertou Ctrl.\n"+ (tempo_para_responder-(int)tempo_contagem).ToString()+"s";
+                        texto.text = time_ganhador_multiplos_times + " foi apertado.\n"+ (tempo_para_responder-(int)tempo_contagem).ToString()+"s";
+                        if (tempo_contagem>tempo_para_responder) {
+                            modo_do_jogo ="3.Responda Agora";
+                            texto.text ="";
+                        }
                     }
-                    // time B
-                    else{
-                        cam.backgroundColor = new Color(0f, 0f, 0.6f, 1f);
-                        texto.text = "Time B apertou Enter.\n"+ (tempo_para_responder-(int)tempo_contagem).ToString()+"s";
-                    }
-                    //Condição de saída
-                    if (tempo_contagem>tempo_para_responder) {
-                        modo_do_jogo ="3.Responda Agora";
-                        texto.text ="";
-                    }
+
+
+
                 }
                 else if (modo_do_jogo =="3.Responda Agora" ){
 
