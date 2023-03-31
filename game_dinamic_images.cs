@@ -36,9 +36,8 @@ public class game_dinamic_images : MonoBehaviour
     private bool safe_button_not_continue = true;
     private bool multiplos_times;
     private string time_ganhador_multiplos_times = "";
-    private bool erro_ao_carregar;
     private string carregou_interrogacao ="";
-    //private bool condicao_para_carregar;
+
     void Start()
     {
         iniciar_sprites();
@@ -47,9 +46,7 @@ public class game_dinamic_images : MonoBehaviour
         figura_Perguntas_e_Respostas.enabled = false;
         randomizar_e_preparar_perguntas();
         multiplos_times = false;
-        erro_ao_carregar = false;
         carregou_interrogacao = "C - Carregar última rodada";
-
     }
 
     void save(){
@@ -59,14 +56,10 @@ public class game_dinamic_images : MonoBehaviour
         for(int i=0;i<lista_final_dos_indices_das_perguntas.Count;i++ ){
             PlayerPrefs.SetInt("array_perguntas"+i,lista_final_dos_indices_das_perguntas[i]);
         }
-
     }
 
     bool load(){
-
-        //condicao_para_carregar = false;
-
-        bool chave0= true;// = PlayerPrefs.HasKey("indice_atual");
+        bool chave0= true;
         int j =0;
         while(chave0){
             chave0 = PlayerPrefs.HasKey("array_perguntas"+j);
@@ -89,6 +82,7 @@ public class game_dinamic_images : MonoBehaviour
         }
         else{return false;}
     }
+
     void iniciar_sprites(){
         
         if (!Directory.Exists(Application.dataPath + "/perguntas/")){
@@ -114,7 +108,6 @@ public class game_dinamic_images : MonoBehaviour
             sprites_respostas.Add(MySprite);
         }
     }
-
 
     void randomizar_e_preparar_perguntas(){
         for (int i= 0; i < sprites_perguntas.Count;i++){
