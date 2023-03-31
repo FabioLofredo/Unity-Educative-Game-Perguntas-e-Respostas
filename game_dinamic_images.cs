@@ -37,6 +37,7 @@ public class game_dinamic_images : MonoBehaviour
     private bool multiplos_times;
     private string time_ganhador_multiplos_times = "";
     private string carregou_interrogacao ="";
+    private float contagem_sair;
 
     void Start()
     {
@@ -146,17 +147,18 @@ public class game_dinamic_images : MonoBehaviour
 
     void sair_do_jogo(){
         texto.color = new Color32(255, 255, 0, 255);
+        contagem_sair+= Time.deltaTime;
         float t = Mathf.PingPong(Time.time, duration_exit_color_change) / duration_exit_color_change;
         cam.backgroundColor = Color.Lerp( Color.red, Color.blue, t);
-        texto.text = "Deseja realmente sair? (s/n)";
-        if (Input.GetKeyDown(KeyCode.N)){
+        texto.text = "Deseja realmente sair?\nEspaço - Sim\nEsc - Não";
+        if (Input.GetKeyDown(KeyCode.Escape) && contagem_sair>1){
             cam.backgroundColor=temp_camera;
             texto.color=temp_texto_color;
             figura_Perguntas_e_Respostas.enabled=temp_enabled_img;
             tela_de_saida = false;
             texto.text = "";
         }
-        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.KeypadEnter)){
+        if (Input.GetKeyDown(KeyCode.Space) && contagem_sair>1){
             Application.Quit();
         }
     }
@@ -188,6 +190,7 @@ public class game_dinamic_images : MonoBehaviour
                 temp_enabled_img = figura_Perguntas_e_Respostas.IsActive();
                 figura_Perguntas_e_Respostas.enabled = false;
                 Instantiate(efeito_sonoro_sair);
+                contagem_sair = 0;
             }
             if(tela_de_saida == true)sair_do_jogo();
             else{
@@ -254,7 +257,7 @@ public class game_dinamic_images : MonoBehaviour
                             List<string> key_press_list = new List<string>();
                             foreach(KeyCode kcode in System.Enum.GetValues(typeof(KeyCode))){
                                 if (Input.GetKey(kcode)){
-                                    if (KeyCode.Space!=kcode)key_press_list.Add(kcode.ToString());
+                                    if (KeyCode.Space!=kcode && KeyCode.Escape!=kcode )key_press_list.Add(kcode.ToString());
                                 }
                                 //Debug.Log("KeyCode down: " + kcode);
                             }
