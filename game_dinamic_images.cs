@@ -257,7 +257,7 @@ public class game_dinamic_images : MonoBehaviour
                             List<string> key_press_list = new List<string>();
                             foreach(KeyCode kcode in System.Enum.GetValues(typeof(KeyCode))){
                                 if (Input.GetKey(kcode)){
-                                    if (KeyCode.Space!=kcode && KeyCode.Escape!=kcode )key_press_list.Add(kcode.ToString());
+                                    if (KeyCode.Space!=kcode && KeyCode.Escape!=kcode && KeyCode.Mouse0!=kcode)key_press_list.Add(kcode.ToString());
                                 }
                                 //Debug.Log("KeyCode down: " + kcode);
                             }
